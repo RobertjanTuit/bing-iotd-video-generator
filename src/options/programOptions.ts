@@ -1,8 +1,8 @@
 import { Command, Option } from "commander";
 import consola from "consola";
 import "reflect-metadata";
-import * as packageJSON from "../package.json";
-import { IAction } from "./actions";
+import * as packageJSON from "../../package.json";
+import { IAction } from "../actions";
 import inquirer from "inquirer";
 
 enum optionTypes {
@@ -29,7 +29,7 @@ function option(props: IOptionprops) {
   return Reflect.metadata(decorators.option, props);
 }
 
-function getOptions(options: Options) {
+function getOptions(options: ProgramOptions) {
   return Object.keys(options)
     .map((key) => ({
       key: key,
@@ -42,11 +42,13 @@ function getOptions(options: Options) {
     .filter((k) => k.props != null);
 }
 
-export class Options {
+export class ProgramOptions {
   version: any;
+  title: any;
   constructor(private program: Command) {
     var optionsMetadata = getOptions(this);
     this.version = packageJSON["default"].version;
+    this.title = packageJSON["default"].title;
 
     optionsMetadata.forEach(({ key, props }) => {
       var option = new Option(props.flags.join(", "), props.description);
@@ -62,38 +64,47 @@ export class Options {
     });
 
     program.version(this.version);
-
-    var parsedOptions = program.parse().opts();
-    for (const key in parsedOptions) {
-      const value = parsedOptions[key];
-      this[key] = value;
-    }
   }
 
   public async actions(actions: any) {
+    const actionObjects: IAction[] = Object.keys(actions).map(
+      (key: string | number) => new actions[key]() as IAction
+    );
     this.program
-      .command("help", { isDefault: true, hidden: true })
-      .action(() => {
+      .command("default", {
+        isDefault: true,
+        hidden: true,
+      })
+      .action((name, options, command) => {
         inquirer
           .prompt([
             {
               type: "list",
               name: "action",
               message: "Select an action to execute",
-              choices: actions,
+              choices: actionObjects.map((ao) => ao.command),
             },
           ])
           .then((answers) => {
-            consola.log(answers);
+            var ao = actionObjects
+              .filter((ao) => ao.command == answers.action)
+              .mapAsync<boolean>(async (ao) => await ao.execute(this));
           });
       });
 
-    Object.keys(actions).forEach((key) => {
-      var action = new actions[key]() as IAction;
-      this.program.command(action.command, action.description).action(() => {
-        action.execute(this);
-      });
+    actionObjects.forEach((action) => {
+      this.program
+        .command(action.command, action.description)
+        .action((name, options, command) => {
+          action.execute(this);
+        });
     });
+
+    var parsedOptions = this.program.parse().opts();
+    for (const key in parsedOptions) {
+      const value = parsedOptions[key];
+      this[key] = value;
+    }
   }
 
   @option({

@@ -5,7 +5,12 @@ if (!Array.prototype.forEachAsync) {
             await callback(this[index], index, this);
         }
     };
-    Array.prototype.forEachConcurrent = async function forEachConcurrent(callback, threadCount) {
+    Array.prototype.mapAsync = async function mapAsync(callback) {
+        for (let index = 0; index < this.length; index++) {
+            await callback(this[index], index, this);
+        }
+    };
+    Array.prototype.forEachAsyncConcurrent = async function forEachConcurrent(callback, threadCount) {
         return new Promise(async (resolve) => {
             var countLeft = this.length;
             if (threadCount == null)

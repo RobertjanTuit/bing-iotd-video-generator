@@ -2,14 +2,14 @@ import chalk from "chalk";
 import consola from "consola";
 import { IAction } from ".";
 import * as bingIotd from "../bing-iotd";
-import { Options } from "../options";
+import { ProgramOptions } from "../options/programOptions";
 import fs from "fs/promises";
 import { existsSync } from "fs";
 import { join } from "path";
 import fetch from "node-fetch";
 
 export class bingIotdFetchLatest implements IAction {
-  async execute(options: Options): Promise<boolean> {
+  async execute(options: ProgramOptions): Promise<boolean> {
     await ensurePathExists(options.cacheFolder);
     await fs.rmdir(options.imageFolder, { recursive: true });
     await ensurePathExists(options.imageFolder);
@@ -35,7 +35,7 @@ export class bingIotdFetchLatest implements IAction {
       }
     });
 
-    await images.forEachConcurrent(async (imageElement) => {
+    await images.forEachAsyncConcurrent(async (imageElement) => {
       await downloadImage(imageElement, imageElement["locale"]);
       images.push(imageElement);
     }, 6);

@@ -7,7 +7,11 @@ declare global {
       this: T[],
       callback: (item: T, index?: number, array?: T[]) => Promise<void>
     ): Promise<void>;
-    forEachConcurrent(
+    mapAsync<TT>(
+      this: T[],
+      callback: (item: T, index?: number, array?: T[]) => Promise<TT>
+    ): Promise<void>;
+    forEachAsyncConcurrent(
       this: T[],
       callback: (item: T, index?: number, array?: T[]) => Promise<void>,
       threadCount?: number
@@ -17,14 +21,23 @@ declare global {
 if (!Array.prototype.forEachAsync) {
   Array.prototype.forEachAsync = async function forEachAsync<T>(
     this: T[],
-    callback: (item: T, index?: number, array?: T[]) => void
+    callback: (item: T, index?: number, array?: T[]) => Promise<void>
   ) {
     for (let index = 0; index < this.length; index++) {
       await callback(this[index], index, this);
     }
   };
 
-  Array.prototype.forEachConcurrent = async function forEachConcurrent<T>(
+  Array.prototype.mapAsync = async function mapAsync<T, TT>(
+    this: T[],
+    callback: (item: T, index?: number, array?: T[]) => Promise<TT>
+  ) {
+    for (let index = 0; index < this.length; index++) {
+      await callback(this[index], index, this);
+    }
+  };
+
+  Array.prototype.forEachAsyncConcurrent = async function forEachConcurrent<T>(
     this: T[],
     callback: (item: T, index?: number, array?: T[]) => Promise<void>,
     threadCount?: number

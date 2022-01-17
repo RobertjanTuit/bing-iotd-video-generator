@@ -25,7 +25,7 @@ export class bingIotdFetchLatest {
                 });
             }
         });
-        await images.forEachConcurrent(async (imageElement) => {
+        await images.forEachAsyncConcurrent(async (imageElement) => {
             await downloadImage(imageElement, imageElement["locale"]);
             images.push(imageElement);
         }, 6);

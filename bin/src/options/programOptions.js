@@ -1,8 +1,7 @@
 import { __decorate, __metadata } from "tslib";
 import { Option } from "commander";
-import consola from "consola";
 import "reflect-metadata";
-import * as packageJSON from "../package.json";
+import * as packageJSON from "../../package.json";
 import inquirer from "inquirer";
 var optionTypes;
 (function (optionTypes) {
@@ -25,7 +24,7 @@ function getOptions(options) {
     }))
         .filter((k) => k.props != null);
 }
-export class Options {
+export class ProgramOptions {
     program;
     version;
     title;
@@ -45,35 +44,42 @@ export class Options {
             program.addOption(option);
         });
         program.version(this.version);
-        var parsedOptions = program.parse().opts();
-        for (const key in parsedOptions) {
-            const value = parsedOptions[key];
-            this[key] = value;
-        }
     }
     async actions(actions) {
+        const actionObjects = Object.keys(actions).map((key) => new actions[key]());
         this.program
-            .command("help", { isDefault: true, hidden: true })
-            .action(() => {
+            .command("default", {
+            isDefault: true,
+            hidden: true,
+        })
+            .action((name, options, command) => {
             inquirer
                 .prompt([
                 {
                     type: "list",
                     name: "action",
                     message: "Select an action to execute",
-                    choices: actions,
+                    choices: actionObjects.map((ao) => ao.command),
                 },
             ])
                 .then((answers) => {
-                consola.log(answers);
+                var ao = actionObjects
+                    .filter((ao) => ao.command == answers.action)
+                    .mapAsync(async (ao) => await ao.execute(this));
             });
         });
-        Object.keys(actions).forEach((key) => {
-            var action = new actions[key]();
-            this.program.command(action.command, action.description).action(() => {
+        actionObjects.forEach((action) => {
+            this.program
+                .command(action.command, action.description)
+                .action((name, options, command) => {
                 action.execute(this);
             });
         });
+        var parsedOptions = this.program.parse().opts();
+        for (const key in parsedOptions) {
+            const value = parsedOptions[key];
+            this[key] = value;
+        }
     }
     watch = false;
     baseUrl = "https://www.bing.com/";
@@ -98,7 +104,7 @@ __decorate([
         description: "watch for changes in source and config and re-execute.",
     }),
     __metadata("design:type", Boolean)
-], Options.prototype, "watch", void 0);
+], ProgramOptions.prototype, "watch", void 0);
 __decorate([
     option({
         type: optionTypes.string,
@@ -106,7 +112,7 @@ __decorate([
         description: "Bing base url",
     }),
     __metadata("design:type", String)
-], Options.prototype, "baseUrl", void 0);
+], ProgramOptions.prototype, "baseUrl", void 0);
 __decorate([
     option({
         type: optionTypes.string,
@@ -114,7 +120,7 @@ __decorate([
         description: "Folder to output images",
     }),
     __metadata("design:type", String)
-], Options.prototype, "imageFolder", void 0);
+], ProgramOptions.prototype, "imageFolder", void 0);
 __decorate([
     option({
         type: optionTypes.string,
@@ -122,7 +128,7 @@ __decorate([
         description: "Folder use for disk cache",
     }),
     __metadata("design:type", Object)
-], Options.prototype, "cacheFolder", void 0);
+], ProgramOptions.prototype, "cacheFolder", void 0);
 __decorate([
     option({
         type: optionTypes.string,
@@ -130,7 +136,7 @@ __decorate([
         description: "Format for the feed url path",
     }),
     __metadata("design:type", Object)
-], Options.prototype, "feedUrlFormat", void 0);
+], ProgramOptions.prototype, "feedUrlFormat", void 0);
 __decorate([
     option({
         type: optionTypes.array,
@@ -138,5 +144,5 @@ __decorate([
         description: "List of locales to use as image sources",
     }),
     __metadata("design:type", Object)
-], Options.prototype, "locales", void 0);
-//# sourceMappingURL=options.js.map
+], ProgramOptions.prototype, "locales", void 0);
+//# sourceMappingURL=programOptions.js.map
