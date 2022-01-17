@@ -27,5 +27,5 @@
   "buildOptions": {
     "incremental": true
   },
-  "include": ["src", "src/forEachAsync.ts"]
+  "include": ["src", "src/util/forEachAsync.ts"]
 }

@@ -1,7 +1,9 @@
 import { __decorate, __metadata } from "tslib";
 import { Option } from "commander";
+import consola from "consola";
 import "reflect-metadata";
 import * as packageJSON from "../package.json";
+import inquirer from "inquirer";
 var optionTypes;
 (function (optionTypes) {
     optionTypes[optionTypes["choices"] = 0] = "choices";
@@ -24,8 +26,10 @@ function getOptions(options) {
         .filter((k) => k.props != null);
 }
 export class Options {
+    program;
     version;
     constructor(program) {
+        this.program = program;
         var optionsMetadata = getOptions(this);
         this.version = packageJSON["default"].version;
         optionsMetadata.forEach(({ key, props }) => {
@@ -44,6 +48,30 @@ export class Options {
             const value = parsedOptions[key];
             this[key] = value;
         }
+    }
+    async actions(actions) {
+        this.program
+            .command("help", { isDefault: true, hidden: true })
+            .action(() => {
+            inquirer
+                .prompt([
+                {
+                    type: "list",
+                    name: "action",
+                    message: "Select an action to execute",
+                    choices: actions,
+                },
+            ])
+                .then((answers) => {
+                consola.log(answers);
+            });
+        });
+        Object.keys(actions).forEach((key) => {
+            var action = new actions[key]();
+            this.program.command(action.command, action.description).action(() => {
+                action.execute(this);
+            });
+        });
     }
     watch = false;
     baseUrl = "https://www.bing.com/";

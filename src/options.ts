@@ -1,6 +1,9 @@
 import { Command, Option } from "commander";
+import consola from "consola";
 import "reflect-metadata";
 import * as packageJSON from "../package.json";
+import { IAction } from "./actions";
+import inquirer from "inquirer";
 
 enum optionTypes {
   choices,
@@ -41,7 +44,7 @@ function getOptions(options: Options) {
 
 export class Options {
   version: any;
-  constructor(program: Command) {
+  constructor(private program: Command) {
     var optionsMetadata = getOptions(this);
     this.version = packageJSON["default"].version;
 
@@ -65,6 +68,32 @@ export class Options {
       const value = parsedOptions[key];
       this[key] = value;
     }
+  }
+
+  public async actions(actions: any) {
+    this.program
+      .command("help", { isDefault: true, hidden: true })
+      .action(() => {
+        inquirer
+          .prompt([
+            {
+              type: "list",
+              name: "action",
+              message: "Select an action to execute",
+              choices: actions,
+            },
+          ])
+          .then((answers) => {
+            consola.log(answers);
+          });
+      });
+
+    Object.keys(actions).forEach((key) => {
+      var action = new actions[key]() as IAction;
+      this.program.command(action.command, action.description).action(() => {
+        action.execute(this);
+      });
+    });
   }
 
   @option({
