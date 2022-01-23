@@ -1,15 +1,15 @@
 import chalk from "chalk";
 import consola from "consola";
 import { IAction } from ".";
-import * as bingIotd from "../bing-iotd";
-import { ProgramOptions } from "../options/programOptions";
+import * as bingIotd from "./bing-iotd";
+import { SlideShowOff } from "../slideshowoff";
 import fs from "fs/promises";
 import { existsSync } from "fs";
 import { join } from "path";
 import fetch from "node-fetch";
 
 export class bingIotdFetchLatest implements IAction {
-  async execute(options: ProgramOptions): Promise<boolean> {
+  async execute(options: SlideShowOff): Promise<boolean> {
     await ensurePathExists(options.cacheFolder);
     await fs.rmdir(options.imageFolder, { recursive: true });
     await ensurePathExists(options.imageFolder);

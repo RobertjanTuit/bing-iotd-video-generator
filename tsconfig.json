@@ -10,6 +10,7 @@
     "strictNullChecks": true,
     "checkJs": true,
     "allowJs": true,
+    "jsx": "react",
     "moduleResolution": "node",
     "sourceMap": true,
     "importHelpers": true,
@@ -27,5 +28,5 @@
   "buildOptions": {
     "incremental": true
   },
-  "include": ["src", "src/util/forEachAsync.ts"]
+  "include": ["src", "src/util/arrayExtensions.ts", "statics/app.tsx"]
 }

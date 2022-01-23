@@ -1,9 +1,10 @@
 import { Command, Option } from "commander";
 import consola from "consola";
 import "reflect-metadata";
-import * as packageJSON from "../../package.json";
-import { IAction } from "../actions";
+import * as packageJSON from "../package.json";
+import { IAction } from "./actions";
 import inquirer from "inquirer";
+import gradient from "gradient-string";
 
 enum optionTypes {
   choices,
@@ -29,7 +30,7 @@ function option(props: IOptionprops) {
   return Reflect.metadata(decorators.option, props);
 }
 
-function getOptions(options: ProgramOptions) {
+function getOptions(options: SlideShowOff) {
   return Object.keys(options)
     .map((key) => ({
       key: key,
@@ -42,14 +43,25 @@ function getOptions(options: ProgramOptions) {
     .filter((k) => k.props != null);
 }
 
-export class ProgramOptions {
+export class SlideShowOff {
   version: any;
   title: any;
-  constructor(private program: Command) {
+  constructor(private program: Command, actions?: any) {
     var optionsMetadata = getOptions(this);
     this.version = packageJSON["default"].version;
     this.title = packageJSON["default"].title;
+    program.version(this.version);
 
+    this.registerOptions(optionsMetadata, program);
+    if (actions) {
+      this.registerActions(actions);
+    }
+  }
+
+  private registerOptions(
+    optionsMetadata: { key: string; props: IOptionprops }[],
+    program: Command
+  ) {
     optionsMetadata.forEach(({ key, props }) => {
       var option = new Option(props.flags.join(", "), props.description);
       if (this[key]) {
@@ -62,11 +74,9 @@ export class ProgramOptions {
 
       program.addOption(option);
     });
-
-    program.version(this.version);
   }
 
-  public async actions(actions: any) {
+  public async registerActions(actions: any) {
     const actionObjects: IAction[] = Object.keys(actions).map(
       (key: string | number) => new actions[key]() as IAction
     );
@@ -75,7 +85,7 @@ export class ProgramOptions {
         isDefault: true,
         hidden: true,
       })
-      .action((name, options, command) => {
+      .action(() => {
         inquirer
           .prompt([
             {
@@ -86,20 +96,25 @@ export class ProgramOptions {
             },
           ])
           .then((answers) => {
-            var ao = actionObjects
+            return actionObjects
               .filter((ao) => ao.command == answers.action)
               .mapAsync<boolean>(async (ao) => await ao.execute(this));
           });
       });
 
     actionObjects.forEach((action) => {
-      this.program
-        .command(action.command, action.description)
-        .action((name, options, command) => {
-          action.execute(this);
-        });
+      this.program.command(action.command, action.description).action(() => {
+        action.execute(this);
+      });
     });
+  }
 
+  public async execute() {
+    consola.log(
+      `Welcome to ${gradient(["#f26522", "#8dc63f", "#00aeef", "#ffc20e"])(
+        `-=<[ ${this.title} v${this.version} ]>=-`
+      )}`
+    );
     var parsedOptions = this.program.parse().opts();
     for (const key in parsedOptions) {
       const value = parsedOptions[key];

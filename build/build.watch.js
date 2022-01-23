@@ -1,4 +1,4 @@
-const TscWatchClient = require("tsc-watch/client");
+import TscWatchClient from "tsc-watch/client";
 
 const watch = new TscWatchClient();
 var args = process.argv;
