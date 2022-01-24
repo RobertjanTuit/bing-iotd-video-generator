@@ -23,7 +23,6 @@ export async function build() {
       metafile: true,
       sourcemap: true,
       bundle: true,
-      incremental: true,
       plugins: [
         {
           name: "postcss",

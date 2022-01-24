@@ -140,14 +140,7 @@ export class SlideShowOff {
     flags: ["-if", "--imageFolder"],
     description: "Folder to output images",
   })
-  public imageFolder: string = "./output/images/";
-
-  @option({
-    type: optionTypes.string,
-    flags: ["-cd", "--cacheFolder"],
-    description: "Folder use for disk cache",
-  })
-  public cacheFolder = "./output/_cache/";
+  public imageFolder: string = "./output/iotd/images/";
 
   @option({
     type: optionTypes.string,

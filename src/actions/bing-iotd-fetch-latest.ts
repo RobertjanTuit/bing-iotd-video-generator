@@ -10,7 +10,6 @@ import fetch from "node-fetch";
 
 export class bingIotdFetchLatest implements IAction {
   async execute(options: SlideShowOff): Promise<boolean> {
-    await ensurePathExists(options.cacheFolder);
     await fs.rmdir(options.imageFolder, { recursive: true });
     await ensurePathExists(options.imageFolder);
 
