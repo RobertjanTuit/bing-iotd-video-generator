@@ -57,7 +57,7 @@
     "commander": "^8.3.0",
     "consola": "^2.15.3",
     "epxress": "^0.0.1-security",
-    "express": "^4.17.2",
+    "express": "^4.17.3",
     "ffmpeg": "^0.0.4",
     "gradient-string": "^2.0.0",
     "inquirer": "^8.2.0",
